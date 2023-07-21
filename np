@@ -1,0 +1,29 @@
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+    - Ingress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchExpressions:
+          - {key: name, operator: In, values: [fsis-sit2]}
+    ports:
+    - protocol: TCP
+      port: 9094
+    - protocol: TCP
+      port: 8558
+    - protocol: TCP
+      port: 2552
+    - protocol: TCP
+      port: 25520
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 2181
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 9093
