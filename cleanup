@@ -1,0 +1,73 @@
+#!/bin/sh
+exitCode=0;
+
+cleanTranlog(){
+        path="/opt/tranlog/$1/tranlog"
+        if [ -d ${path} ]; then
+          /opt/tranlog/cleanTranslog.sh $path
+          status=$?
+          if [[ ${status} -gt 0 ]]; then
+                echo "Alert: Translog cleanup of ${path} failed with exitcode=${status}"
+                exitCode=${status}
+          fi;
+        fi
+}
+cleanLogFiles(){
+          # Set the target directory
+        TARGET_DIR="/logs"
+        if [ -d "$TARGET_DIR" ]; then
+                # Find and remove empty directories older than 14 days, and print the actions to stdout
+                find "$TARGET_DIR" -type d -name "*.snapshot*" -prune -o -type d -mtime +14 -exec sh -c  'echo "Removing directory: $1"; rmdir --ignore-fail-on-non-empty "$1" || echo "Error removing directory: $1"' _ {} \;
+
+                # Find and remove files older than 14 days, and print the actions to stdouti
+                find "$TARGET_DIR" -type d -name "*.snapshot*" -prune -o -type f -mtime +14 -exec sh -c 'echo "Removing file: $1"; rm -f "$1" || echo "Error removing file: $1"' _ {} \;
+                status=$?
+                if [[ ${status} -gt 0 ]]; then
+                        echo "Alert: Logs cleanup of ${TARGET_DIR} failed with exitcode=${status}"
+                        exitCode=${status}
+                fi;
+        fi
+}
+
+
+cleanTranlog qm0
+cleanTranlog qm1
+cleanTranlog qm2
+cleanTranlog qm3
+
+cleanLogFiles
+
+:
+echo "exitcode: ${exitCode}"
+exit ${exitCode}
+
+
+#!/bin/sh
+if [ ! -d "$1/leases/opf-group" ]; then
+  echo "leases/opf-group does not exist, cleanup aborted"
+  exit 1
+fi
+
+echo BaseDir=$1
+
+for dir in $1/tl-* ; do
+    leaseFileName=$(echo "$dir" | cut -d "/" -f6 | sed "s/^tl//" )
+    leaseFileName=$(echo "$leaseFileName" | sed "s/[-]//g")
+    leasesFilePath="$1/leases/opf-group/$leaseFileName"
+    echo Directory=$dir
+    echo LeasesFilePath=$leasesFilePath
+    if [ ! -f "$leasesFilePath" ]; then
+        if [ -z "$(ls -A $dir/partnerlog )" ] && [ -z "$(ls -A $dir/tranlog )" ];  then
+           echo "REMOVED: $dir / $leaseFileName -  does not exist in leases folder, can be removed"
+           rm -rv "$dir"
+        else
+           echo "WARN: Trans Log $dir is NOT Empty but has no Lease File $leaseFileName"
+        fi
+    else
+       if [ ! -s "$leasesFilePath" ]; then
+          echo "ERROR: Leasefile $leaseFileName is a zero byte file"
+       else
+          echo "NOT REMOVED: $dir / $leaseFileName -  exist in leases folder, can not be removed"
+       fi
+    fi
+done
