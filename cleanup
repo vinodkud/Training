@@ -71,3 +71,19 @@ for dir in $1/tl-* ; do
        fi
     fi
 done
+
+
+Issues
+1.	The directory that the lease file points to does not contain a tranlog or a partnerlog sub directory 
+2.	The directory that the lease file points to does not contain a tranlog sub directory
+3.	The directory that the lease file points to does contain a tranlog sub directory but that directory is empty
+4.	The directory that the lease file points to does not contain a partnerlog sub directory
+5.	The directory that the lease file points to does contain a partnerlog sub directory but that directory is empty
+
+
+Actions the script should take for each issue
+1.	Delete the lease file and the folder it points at.
+2.	Delete the lease file and the folder it points at.
+3.	Delete the lease file and the folder it points at.
+4.	Echo out a message but no not delete anything
+5.	Echo out a message but no not delete anything
