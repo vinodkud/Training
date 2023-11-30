@@ -87,3 +87,50 @@ Actions the script should take for each issue
 3.	Delete the lease file and the folder it points at.
 4.	Echo out a message but no not delete anything
 5.	Echo out a message but no not delete anything
+
+
+#!/bin/sh
+
+if [ ! -d "$1/leases/opf-group" ]; then
+  echo "leases/opf-group does not exist, cleanup aborted"
+  exit 1
+fi
+
+echo BaseDir=$1
+
+for dir in $1/tl-*; do
+    leaseFileName=$(echo "$dir" | awk -F/ '{print $NF}' | sed "s/^tl//;s/[-]//g")
+    leasesFilePath="$1/leases/opf-group/$leaseFileName"
+
+    echo Directory=$dir
+    echo LeasesFilePath=$leasesFilePath
+
+    if [ ! -f "$leasesFilePath" ]; then
+        echo "ERROR: Leasefile $leaseFileName does not exist in leases folder"
+        # Delete the directory and its contents
+        rm -rv "$dir"
+    else
+        if [ ! -d "$dir/tranlog" ] && [ ! -d "$dir/partnerlog" ]; then
+            echo "REMOVED: $dir / $leaseFileName - does not contain tranlog or partnerlog, deleting"
+            # Delete the directory and its contents
+            rm -rv "$dir"
+        elif [ ! -d "$dir/tranlog" ]; then
+            echo "REMOVED: $dir / $leaseFileName - does not contain tranlog, deleting"
+            # Delete the directory and its contents
+            rm -rv "$dir"
+        elif [ -z "$(ls -A $dir/tranlog)" ]; then
+            echo "REMOVED: $dir / $leaseFileName - tranlog is empty, deleting"
+            # Delete the directory and its contents
+            rm -rv "$dir"
+        elif [ ! -d "$dir/partnerlog" ]; then
+            echo "WARN: $dir / $leaseFileName - does not contain partnerlog, no deletion"
+            # Echo a warning message, no deletion
+        elif [ -z "$(ls -A $dir/partnerlog)" ]; then
+            echo "WARN: $dir / $leaseFileName - partnerlog is empty, no deletion"
+            # Echo a warning message, no deletion
+        else
+            echo "NOT REMOVED: $dir / $leaseFileName - exists in leases folder, cannot be removed"
+            # Echo a message, no deletion
+        fi
+    fi
+done
