@@ -150,11 +150,18 @@ done
 
 Modification
 
-# Check if there are any directories matching the pattern
+# Enable nullglob to handle cases with no matches
+shopt -s nullglob
+
+# Explicitly check for the existence of directories starting with tl-
 tl_directories=($1/tl-*)
+
+# Disable nullglob to revert to default behavior
+shopt -u nullglob
+
 if [ ${#tl_directories[@]} -eq 0 ]; then
   echo "No directories matching the pattern $1/tl-* found, deleting all lease files"
-  
+
   # Delete all lease files in the leases/opf-group directory
   for leaseFile in "$1/leases/opf-group"/*; do
     if [ -f "$leaseFile" ]; then
@@ -162,6 +169,13 @@ if [ ${#tl_directories[@]} -eq 0 ]; then
       echo "Deleted lease file: $leaseFile"
     fi
   done
-  
+
   exit 0
 fi
+In this modification:
+
+The shopt -s nullglob command enables the nullglob option. This setting ensures that if there are no matches for the specified pattern, the array will be empty (0 elements) instead of containing the literal pattern itself.
+
+After collecting the tl-* directories, shopt -u nullglob is used to disable the nullglob option, reverting to the default behavior.
+
+
