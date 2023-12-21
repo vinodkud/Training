@@ -146,3 +146,22 @@ for dir in $1/tl-*; do
         fi
     fi
 done
+------------------------
+
+Modification
+
+# Check if there are any directories matching the pattern
+tl_directories=($1/tl-*)
+if [ ${#tl_directories[@]} -eq 0 ]; then
+  echo "No directories matching the pattern $1/tl-* found, deleting all lease files"
+  
+  # Delete all lease files in the leases/opf-group directory
+  for leaseFile in "$1/leases/opf-group"/*; do
+    if [ -f "$leaseFile" ]; then
+      rm -v "$leaseFile"
+      echo "Deleted lease file: $leaseFile"
+    fi
+  done
+  
+  exit 0
+fi
